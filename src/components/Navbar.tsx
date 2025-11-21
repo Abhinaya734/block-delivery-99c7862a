@@ -1,19 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Package, Menu, X, Wallet } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Package, Menu, X, Wallet, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { blockchainService } from '@/services/blockchain';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const address = blockchainService.getConnectedAddress();
     setWalletAddress(address);
+
+    // Check auth session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserEmail(session?.user?.email || null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUserEmail(session?.user?.email || null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleConnectWallet = async () => {
@@ -30,6 +45,12 @@ export const Navbar = () => {
     await blockchainService.disconnectWallet();
     setWalletAddress(null);
     toast.info('Wallet disconnected');
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast.success('Signed out successfully');
+    navigate('/auth');
   };
 
   const formatAddress = (address: string) => {
@@ -88,26 +109,47 @@ export const Navbar = () => {
             ))}
           </div>
 
-          {/* Wallet Connect */}
+          {/* User Auth & Wallet */}
           <div className="hidden md:flex items-center gap-3">
-            {walletAddress ? (
-              <div className="flex items-center gap-2">
+            {userEmail ? (
+              <>
                 <div className="glass-card px-4 py-2 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                  <span className="text-sm font-mono">{formatAddress(walletAddress)}</span>
+                  <User className="w-4 h-4 text-primary" />
+                  <span className="text-sm">{userEmail}</span>
                 </div>
+                {walletAddress ? (
+                  <div className="flex items-center gap-2">
+                    <div className="glass-card px-4 py-2 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                      <span className="text-sm font-mono">{formatAddress(walletAddress)}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDisconnectWallet}
+                    >
+                      Disconnect Wallet
+                    </Button>
+                  </div>
+                ) : (
+                  <Button onClick={handleConnectWallet} size="sm" className="gap-2">
+                    <Wallet className="w-4 h-4" />
+                    Connect Wallet
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleDisconnectWallet}
+                  onClick={handleSignOut}
+                  className="gap-2"
                 >
-                  Disconnect
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
                 </Button>
-              </div>
+              </>
             ) : (
-              <Button onClick={handleConnectWallet} className="gap-2">
-                <Wallet className="w-4 h-4" />
-                Connect Wallet
+              <Button onClick={() => navigate('/auth')} className="gap-2">
+                Sign In
               </Button>
             )}
           </div>
@@ -146,34 +188,64 @@ export const Navbar = () => {
                   </Link>
                 ))}
                 <div className="border-t border-border my-2" />
-                {walletAddress ? (
+                {userEmail ? (
                   <>
                     <div className="glass-card px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
-                        <span className="text-sm font-mono">{formatAddress(walletAddress)}</span>
+                        <User className="w-4 h-4 text-primary" />
+                        <span className="text-sm">{userEmail}</span>
                       </div>
                     </div>
+                    {walletAddress ? (
+                      <>
+                        <div className="glass-card px-4 py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                            <span className="text-sm font-mono">{formatAddress(walletAddress)}</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            handleDisconnectWallet();
+                            setIsMenuOpen(false);
+                          }}
+                        >
+                          Disconnect Wallet
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          handleConnectWallet();
+                          setIsMenuOpen(false);
+                        }}
+                        className="gap-2"
+                      >
+                        <Wallet className="w-4 h-4" />
+                        Connect Wallet
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => {
-                        handleDisconnectWallet();
+                        handleSignOut();
                         setIsMenuOpen(false);
                       }}
+                      className="gap-2"
                     >
-                      Disconnect Wallet
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
                     </Button>
                   </>
                 ) : (
                   <Button
                     onClick={() => {
-                      handleConnectWallet();
+                      navigate('/auth');
                       setIsMenuOpen(false);
                     }}
-                    className="gap-2"
                   >
-                    <Wallet className="w-4 h-4" />
-                    Connect Wallet
+                    Sign In
                   </Button>
                 )}
               </div>
