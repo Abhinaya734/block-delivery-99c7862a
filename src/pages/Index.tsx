@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { Package, TrendingUp, CheckCircle, Clock } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { DeliveryCard } from '@/components/DeliveryCard';
-import { mockDeliveries } from '@/services/mockData';
-import { DeliveryStatus } from '@/types/delivery';
+import { deliveryService } from '@/services/deliveryService';
+import { Delivery, DeliveryStatus } from '@/types/delivery';
 
 const Index = () => {
   const [stats, setStats] = useState({
@@ -13,14 +13,22 @@ const Index = () => {
     inTransit: 0,
     delivered: 0,
   });
+  const [recentDeliveries, setRecentDeliveries] = useState<Delivery[]>([]);
 
   useEffect(() => {
-    const total = mockDeliveries.length;
-    const pending = mockDeliveries.filter(d => d.status === DeliveryStatus.PENDING).length;
-    const inTransit = mockDeliveries.filter(d => d.status === DeliveryStatus.IN_TRANSIT).length;
-    const delivered = mockDeliveries.filter(d => d.status === DeliveryStatus.DELIVERED).length;
+    const fetchDeliveries = async () => {
+      const deliveries = await deliveryService.getAllDeliveries(10);
+      
+      const total = deliveries.length;
+      const pending = deliveries.filter(d => d.status === DeliveryStatus.PENDING).length;
+      const inTransit = deliveries.filter(d => d.status === DeliveryStatus.IN_TRANSIT).length;
+      const delivered = deliveries.filter(d => d.status === DeliveryStatus.DELIVERED).length;
 
-    setStats({ total, pending, inTransit, delivered });
+      setStats({ total, pending, inTransit, delivered });
+      setRecentDeliveries(deliveries.slice(0, 4));
+    };
+
+    fetchDeliveries();
   }, []);
 
   const statCards = [
@@ -107,7 +115,7 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {mockDeliveries.slice(0, 4).map((delivery, index) => (
+            {recentDeliveries.map((delivery, index) => (
               <motion.div
                 key={delivery.id}
                 initial={{ opacity: 0, x: -20 }}

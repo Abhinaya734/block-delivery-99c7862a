@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { blockchainService } from '@/services/blockchain';
+import { deliveryService } from '@/services/deliveryService';
+import { supabase } from '@/integrations/supabase/client';
 import { DeliveryStatus } from '@/types/delivery';
 
 const AdminUpdate = () => {
@@ -26,18 +27,17 @@ const AdminUpdate = () => {
       return;
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error('Please sign in to update deliveries');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const walletAddress = blockchainService.getConnectedAddress();
-
-      if (walletAddress) {
-        const txHash = await blockchainService.updateStatus(deliveryId, newStatus);
-        toast.success(`Status updated! Tx: ${txHash.slice(0, 10)}...`);
-      } else {
-        toast.info('Please connect wallet to update status on blockchain');
-        toast.success('Status updated (Demo Mode)');
-      }
+      await deliveryService.updateStatus(deliveryId, newStatus);
+      toast.success('Status updated successfully!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to update status');
       console.error(error);
@@ -52,24 +52,23 @@ const AdminUpdate = () => {
       return;
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error('Please sign in to update deliveries');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const walletAddress = blockchainService.getConnectedAddress();
+      await deliveryService.updateLocation(deliveryId, {
+        latitude: parseFloat(locationData.latitude) || 0,
+        longitude: parseFloat(locationData.longitude) || 0,
+        address: locationData.address,
+        timestamp: Date.now(),
+      });
 
-      if (walletAddress) {
-        const txHash = await blockchainService.updateLocation(deliveryId, {
-          latitude: parseFloat(locationData.latitude) || 0,
-          longitude: parseFloat(locationData.longitude) || 0,
-          address: locationData.address,
-          timestamp: Date.now(),
-        });
-        toast.success(`Location updated! Tx: ${txHash.slice(0, 10)}...`);
-      } else {
-        toast.info('Please connect wallet to update location on blockchain');
-        toast.success('Location updated (Demo Mode)');
-      }
-
+      toast.success('Location updated successfully!');
       setLocationData({ latitude: '', longitude: '', address: '' });
     } catch (error: any) {
       toast.error(error.message || 'Failed to update location');

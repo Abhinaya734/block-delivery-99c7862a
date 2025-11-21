@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { blockchainService } from '@/services/blockchain';
-import { generateTrackingNumber, generateMockTransactionHash } from '@/services/mockData';
+import { deliveryService } from '@/services/deliveryService';
 import { DeliveryFormData } from '@/types/delivery';
+import { supabase } from '@/integrations/supabase/client';
 
 const CreateDelivery = () => {
   const navigate = useNavigate();
@@ -59,27 +59,19 @@ const CreateDelivery = () => {
     setIsLoading(true);
 
     try {
-      const trackingNumber = generateTrackingNumber();
-      const walletAddress = blockchainService.getConnectedAddress();
-
-      if (walletAddress) {
-        // Real blockchain transaction
-        const result = await blockchainService.createDelivery(
-          trackingNumber,
-          formData.recipient,
-          formData.origin,
-          formData.destination
-        );
-
-        toast.success('Delivery created successfully on blockchain!');
-        console.log('Transaction hash:', result.transactionHash);
-        console.log('Delivery ID:', result.deliveryId);
-      } else {
-        // Mock transaction for demo
-        const mockTxHash = generateMockTransactionHash();
-        console.log('Mock transaction hash:', mockTxHash);
-        toast.success('Delivery created successfully (Demo Mode)');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error('Please sign in to create deliveries');
+        navigate('/auth');
+        return;
       }
+
+      const result = await deliveryService.createDelivery(formData);
+
+      toast.success('Delivery created successfully!');
+      console.log('Transaction hash:', result.transactionHash);
+      console.log('Delivery ID:', result.delivery.id);
 
       // Reset form
       setFormData({

@@ -6,7 +6,7 @@ import { DeliveryCard } from '@/components/DeliveryCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { getMockDeliveryByTrackingNumber } from '@/services/mockData';
+import { deliveryService } from '@/services/deliveryService';
 import { Delivery } from '@/types/delivery';
 
 const TrackDelivery = () => {
@@ -23,10 +23,7 @@ const TrackDelivery = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const result = getMockDeliveryByTrackingNumber(trackingNumber);
+      const result = await deliveryService.getDeliveryByTrackingNumber(trackingNumber);
 
       if (result) {
         setDelivery(result);

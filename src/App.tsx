@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import CreateDelivery from "./pages/CreateDelivery";
 import TrackDelivery from "./pages/TrackDelivery";
 import AdminUpdate from "./pages/AdminUpdate";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/create" element={<CreateDelivery />} />
           <Route path="/track" element={<TrackDelivery />} />
           <Route path="/admin" element={<AdminUpdate />} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
