@@ -14,7 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      deliveries: {
+        Row: {
+          block_number: number | null
+          created_at: string
+          created_by: string | null
+          destination: string
+          estimated_delivery: string
+          id: string
+          origin: string
+          package_description: string | null
+          package_dimensions: string | null
+          package_weight: string | null
+          recipient_name: string
+          sender_address: string
+          status: Database["public"]["Enums"]["delivery_status"]
+          tracking_number: string
+          transaction_hash: string
+          updated_at: string
+        }
+        Insert: {
+          block_number?: number | null
+          created_at?: string
+          created_by?: string | null
+          destination: string
+          estimated_delivery: string
+          id?: string
+          origin: string
+          package_description?: string | null
+          package_dimensions?: string | null
+          package_weight?: string | null
+          recipient_name: string
+          sender_address: string
+          status?: Database["public"]["Enums"]["delivery_status"]
+          tracking_number: string
+          transaction_hash: string
+          updated_at?: string
+        }
+        Update: {
+          block_number?: number | null
+          created_at?: string
+          created_by?: string | null
+          destination?: string
+          estimated_delivery?: string
+          id?: string
+          origin?: string
+          package_description?: string | null
+          package_dimensions?: string | null
+          package_weight?: string | null
+          recipient_name?: string
+          sender_address?: string
+          status?: Database["public"]["Enums"]["delivery_status"]
+          tracking_number?: string
+          transaction_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      delivery_locations: {
+        Row: {
+          address: string
+          created_at: string
+          delivery_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          transaction_hash: string | null
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          delivery_id: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          transaction_hash?: string | null
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          delivery_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          transaction_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_locations_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_transactions: {
+        Row: {
+          block_number: number | null
+          created_at: string
+          delivery_id: string
+          from_address: string
+          gas_used: string | null
+          id: string
+          status: string
+          transaction_hash: string
+          transaction_type: string
+        }
+        Insert: {
+          block_number?: number | null
+          created_at?: string
+          delivery_id: string
+          from_address: string
+          gas_used?: string | null
+          id?: string
+          status?: string
+          transaction_hash: string
+          transaction_type: string
+        }
+        Update: {
+          block_number?: number | null
+          created_at?: string
+          delivery_id?: string
+          from_address?: string
+          gas_used?: string | null
+          id?: string
+          status?: string
+          transaction_hash?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_transactions_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +161,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      delivery_status: "Pending" | "In Transit" | "Delivered"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +288,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      delivery_status: ["Pending", "In Transit", "Delivered"],
+    },
   },
 } as const
