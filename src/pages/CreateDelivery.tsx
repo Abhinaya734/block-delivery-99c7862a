@@ -143,7 +143,7 @@ const CreateDelivery = () => {
                     name="origin"
                     value={formData.origin}
                     onChange={handleChange}
-                    placeholder="New York, NY, USA"
+                    placeholder="Madurai, Tamil Nadu, India"
                     required
                     className="mt-2"
                   />
@@ -155,7 +155,7 @@ const CreateDelivery = () => {
                     name="destination"
                     value={formData.destination}
                     onChange={handleChange}
-                    placeholder="Los Angeles, CA, USA"
+                    placeholder="Chennai, Tamil Nadu, India"
                     required
                     className="mt-2"
                   />
