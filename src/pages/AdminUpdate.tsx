@@ -203,7 +203,7 @@ const AdminUpdate = () => {
                   onChange={(e) =>
                     setLocationData({ ...locationData, address: e.target.value })
                   }
-                  placeholder="Denver, CO, USA"
+                  placeholder="Coimbatore, Tamil Nadu, India"
                   className="mt-2"
                 />
               </div>
