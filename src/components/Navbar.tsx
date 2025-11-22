@@ -61,6 +61,7 @@ export const Navbar = () => {
     { path: '/', label: 'Dashboard' },
     { path: '/create', label: 'Create Delivery' },
     { path: '/track', label: 'Track Package' },
+    { path: '/transactions', label: 'Transactions' },
     { path: '/admin', label: 'Admin' },
   ];
 
